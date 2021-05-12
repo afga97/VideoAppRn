@@ -17,6 +17,7 @@ export const AudioFile = () => {
         rate: undefined,
         volume: undefined,
         muted: undefined,
+        stylefull: {}
 
     })
     const videoRef = useRef();
@@ -48,31 +49,50 @@ export const AudioFile = () => {
     }
 
     const fullScreenMode = () => {
-        if (!fullScreen) {
+        let fullScreen = true
+        let stylefull = {}
+        if (!state.fullScreen) {
             videoRef.current.presentFullscreenPlayer()
-            setState({ ...state, fullScreen: true })
+            
         } else {
             videoRef.current.dismissFullscreenPlayer()
-            setState({ ...state, fullScreen: false })
+            fullScreen = false
         }
+        if (fullScreen) {
+            stylefull = {
+                containerChild: {
+                    width: '100%', 
+                    height: '100%'
+                },
+                containerVideo: {
+                    width: '100%',
+                    height: '90%'
+                },
+                video: {
+                    width: '100%',
+                    height: '100%'
+                }
+            }
+        } 
+        setState({ ...state, fullScreen, stylefull })
     }
 
     const secondsToTime = (seconds) => {
-        var hour = Math.floor(seconds / 3600);
+        let hour = Math.floor(seconds / 3600);
         hour = (hour < 10) ? '0' + hour : hour;
-        var minute = Math.floor((seconds / 60) % 60);
+        let minute = Math.floor((seconds / 60) % 60);
         minute = (minute < 10) ? '0' + minute : minute;
-        var second = seconds % 60;
+        let second = seconds % 60;
         second = (second < 10) ? '0' + second : second;
         return hour + ':' + minute + ':' + second;
     }
 
     return (
-        <View style={styles.container}>
-            <View style={{ backgroundColor: 'purple', borderRadius: 10, }}>
-                <View style={styles.containerVideo}>
+        <View style={{ ...styles.container }}>
+            <View style={{ backgroundColor: 'purple', borderRadius: 10, ...state.stylefull?.containerChild, paddingTop: 40 }}>
+                <View style={{ ...styles.containerVideo, ...state.stylefull?.containerVideo  }}>
                     <Video source={{ uri: "https://player.vimeo.com/external/177625290.hd.mp4?s=49a8e7ed3bb0a6b023bf3c87cea2436567da8e6f&profile_id=174" }}
-                        style={{ ...styles.video }}
+                        style={{ ...styles.video, ...state.stylefull?.video }}
                         ref={(ref) => {
                             videoRef.current = ref
                         }}
@@ -122,13 +142,16 @@ export const AudioFile = () => {
                                 size={40} color="white"
                                 style={{ marginRight: 20 }}
                             />
-                            <Icon
-                                name={'scan-outline'}
-                                size={40} color="white"
-                            />
+                            <TouchableWithoutFeedback
+                                onPress={fullScreenMode}
+                            >
+                                <Icon
+                                    name={'scan-outline'}
+                                    size={40} color="white"
+                                />
+                            </TouchableWithoutFeedback>
                         </View>
                     </View>
-
                 </View>
             </View>
         </View>
@@ -171,11 +194,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         flexDirection: 'row',
         width: '100%',
-        height: 50,
+        // height: 50,
     },
     video: {
         width: '100%',
         height: 300,
-        marginTop: 50,
+        // marginTop: 50,
     }
 })
