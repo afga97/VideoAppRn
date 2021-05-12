@@ -3,7 +3,7 @@ import Video from 'react-native-video';
 import ProgressBar from 'react-native-progress/Bar';
 
 import Icon from 'react-native-vector-icons/dist/Ionicons';
-import { useWindowDimensions, StyleSheet, Text, View, TouchableWithoutFeedback } from 'react-native'
+import { useWindowDimensions, StyleSheet, Text, View, TouchableWithoutFeedback, TouchableOpacity } from 'react-native'
 
 export const AudioFile = () => {
     const window = useWindowDimensions();
@@ -17,7 +17,8 @@ export const AudioFile = () => {
         rate: undefined,
         volume: undefined,
         muted: undefined,
-        stylefull: {}
+        stylefull: {},
+        showControls: false
 
     })
     const videoRef = useRef();
@@ -53,7 +54,7 @@ export const AudioFile = () => {
         let stylefull = {}
         if (!state.fullScreen) {
             videoRef.current.presentFullscreenPlayer()
-            
+
         } else {
             videoRef.current.dismissFullscreenPlayer()
             fullScreen = false
@@ -61,7 +62,7 @@ export const AudioFile = () => {
         if (fullScreen) {
             stylefull = {
                 containerChild: {
-                    width: '100%', 
+                    width: '100%',
                     height: '100%'
                 },
                 containerVideo: {
@@ -73,8 +74,14 @@ export const AudioFile = () => {
                     height: '100%'
                 }
             }
-        } 
+        }
         setState({ ...state, fullScreen, stylefull })
+    }
+
+    const showControls = () => {
+        state.showControls
+        ? setState({...state, showControls: false})
+        : setState({...state, showControls: true});
     }
 
     const secondsToTime = (seconds) => {
@@ -89,71 +96,78 @@ export const AudioFile = () => {
 
     return (
         <View style={{ ...styles.container }}>
-            <View style={{ backgroundColor: 'purple', borderRadius: 10, ...state.stylefull?.containerChild, paddingTop: 40 }}>
-                <View style={{ ...styles.containerVideo, ...state.stylefull?.containerVideo  }}>
-                    <Video source={{ uri: "https://player.vimeo.com/external/177625290.hd.mp4?s=49a8e7ed3bb0a6b023bf3c87cea2436567da8e6f&profile_id=174" }}
-                        style={{ ...styles.video, ...state.stylefull?.video }}
-                        ref={(ref) => {
-                            videoRef.current = ref
-                        }}
-                        rate={state.rate}
-                        paused={state.paused}
-                        volume={state.volume}
-                        muted={state.muted}
-                        resizeMode={state.resizeMode}
-                        fullScreen={true}
-                        controls={false}
-                        repeat={false}
-                        onLoad={handleLoad}
-                        progress={handleProgress}
-                        onEnd={handleEnd}
-                        onError={(err) => console.log(err)}
-                        onProgress={handleProgress}
-                    />
-                </View>
-                <View style={styles.playButton}>
-                    <TouchableWithoutFeedback
-                        onPress={() => onMainButtonPress()}
-                    >
-                        <Icon name={state.paused ? 'play-circle-outline' : 'pause-circle-outline'} size={70} color="white" />
-                    </TouchableWithoutFeedback >
-                </View>
-                <View style={styles.containerOptions}>
-                    <TouchableWithoutFeedback
-                        onPress={onProgressPress}
-                    >
-                        <ProgressBar
-                            progress={state.progress}
-                            color="#FFF"
-                            unfilledColor="rgba(255, 255,255, .5)"
-                            borderColor="#FFF"
-                            width={window.width}
-                            height={10}
+            <TouchableWithoutFeedback onPress={showControls} >
+                <View style={{ backgroundColor: 'purple', borderRadius: 10, ...state.stylefull?.containerChild, paddingTop: 40 }}>
+                    <View style={{ ...styles.containerVideo, ...state.stylefull?.containerVideo }}>
+                        <Video source={{ uri: "https://player.vimeo.com/external/177625290.hd.mp4?s=49a8e7ed3bb0a6b023bf3c87cea2436567da8e6f&profile_id=174" }}
+                            style={{ ...styles.video, ...state.stylefull?.video }}
+                            ref={(ref) => {
+                                videoRef.current = ref
+                            }}
+                            rate={state.rate}
+                            paused={state.paused}
+                            volume={state.volume}
+                            muted={state.muted}
+                            resizeMode={state.resizeMode}
+                            fullScreen={true}
+                            controls={false}
+                            repeat={false}
+                            onLoad={handleLoad}
+                            progress={handleProgress}
+                            onEnd={handleEnd}
+                            onError={(err) => console.log(err)}
+                            onProgress={handleProgress}
                         />
-                    </TouchableWithoutFeedback >
-                    <View style={styles.buttonsControl}>
-                        <Text style={styles.duration}>
-                            {secondsToTime(Math.floor(state.progress * state.duration))}
-                        </Text>
-
-                        <View style={{ flex: 1, justifyContent: 'flex-end', flexDirection: 'row' }}>
-                            <Icon
-                                name={'volume-mute-outline'}
-                                size={40} color="white"
-                                style={{ marginRight: 20 }}
+                    </View>
+                    {state.showControls && ( 
+                        <View style={styles.controlOverlay}>
+                            <View style={styles.playButton}>
+                                <TouchableOpacity
+                                    style={styles.touchable}
+                                    onPress={() => onMainButtonPress()}
+                                >
+                                    <Icon name={state.paused ? 'play-circle-outline' : 'pause-circle-outline'} size={70} color="white" />
+                                </TouchableOpacity>
+                            </View>
+                        </View> 
+                    )}
+                    <View style={styles.containerOptions}>
+                        <TouchableWithoutFeedback
+                            onPress={onProgressPress}
+                        >
+                            <ProgressBar
+                                progress={state.progress}
+                                color="#FFF"
+                                unfilledColor="rgba(255, 255,255, .5)"
+                                borderColor="#FFF"
+                                width={window.width}
+                                height={10}
                             />
-                            <TouchableWithoutFeedback
-                                onPress={fullScreenMode}
-                            >
+                        </TouchableWithoutFeedback >
+                        <View style={styles.buttonsControl}>
+                            <Text style={styles.duration}>
+                                {secondsToTime(Math.floor(state.progress * state.duration))}
+                            </Text>
+
+                            <View style={{ flex: 1, justifyContent: 'flex-end', flexDirection: 'row' }}>
                                 <Icon
-                                    name={'scan-outline'}
+                                    name={'volume-mute-outline'}
                                     size={40} color="white"
+                                    style={{ marginRight: 20 }}
                                 />
-                            </TouchableWithoutFeedback>
+                                <TouchableWithoutFeedback
+                                    onPress={fullScreenMode}
+                                >
+                                    <Icon
+                                        name={'scan-outline'}
+                                        size={40} color="white"
+                                    />
+                                </TouchableWithoutFeedback>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </View>
     )
 }
@@ -182,13 +196,18 @@ const styles = StyleSheet.create({
         paddingTop: 10
     },
     playButton: {
-        justifyContent: 'center', 
+        paddingHorizontal: 5,
+        flexDirection: 'row',
         alignItems: 'center',
-        alignContent: 'center',
-        alignSelf: 'center',
-        position: 'absolute',
-        height: 390,
-        backgroundColor: 'blue'
+        justifyContent: 'space-evenly',
+        flex: 3,
+        // justifyContent: 'center', 
+        // alignItems: 'center',
+        // alignContent: 'center',
+        // alignSelf: 'center',
+        // position: 'absolute',
+        // height: 390,
+        // backgroundColor: 'blue'
     },
     buttonsControl: {
         paddingHorizontal: 10,
@@ -200,5 +219,18 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 300,
         // marginTop: 50,
+    },
+    controlOverlay: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#000000c4',
+
+        // justifyContent: 'space-between',
+    },
+    touchable: {
+        padding: 5,
     }
 })
